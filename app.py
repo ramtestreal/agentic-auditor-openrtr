@@ -161,11 +161,11 @@ def perform_audit(url, api_key):
         api_key=api_key,
     )
     
+    # REMOVED THE DEAD 'ZEPHYR' MODEL
     models = [
         "google/gemini-2.0-flash-exp:free",        
         "meta-llama/llama-3.2-11b-vision-instruct:free", 
-        "microsoft/phi-3-medium-128k-instruct:free",    
-        "huggingfaceh4/zephyr-7b-beta:free"             
+        "microsoft/phi-3-medium-128k-instruct:free"
     ]
     
     status_msg = st.empty()
@@ -281,7 +281,9 @@ user_input_key = st.sidebar.text_input("OpenRouter API Key", type="password", he
 if user_input_key:
     api_key = user_input_key
 else:
-    api_key = "" # PASTE YOUR KEY HERE IF NEEDED
+    # Use a dummy key if none provided, user will likely get an error if they don't provide one
+    # unless you have a hardcoded one you want to use.
+    api_key = "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" 
 
 st.title("🤖 Agentic Readiness Auditor Pro")
 st.markdown("### The Standard for Future Commerce")
