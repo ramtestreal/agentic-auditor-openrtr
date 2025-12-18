@@ -8,7 +8,7 @@ import time
 import visuals  # Ensure visuals.py exists in your repo
 
 # --- CONFIGURATION ---
-st.set_page_config(page_title="Agentic Readiness Auditor Pro", page_icon="🤖", layout="wide")
+st.set_page_config(page_title="Agentic Readiness Auditor Pro", page_icon="🕵️‍♂️", layout="wide")
 
 # --- SESSION STATE INITIALIZATION ---
 if 'audit_data' not in st.session_state:
@@ -91,40 +91,71 @@ def check_security_gates(url):
     return gates
 
 def generate_recommendations(audit_data):
+    """Generates hard-coded logic recommendations"""
     recs = []
+    
     if "BLOCKED" in audit_data['gates']['ai_access']:
-        recs.append("CRITICAL: Update robots.txt to whitelist 'GPTBot' and 'Google-Extended'.")
+        recs.append("CRITICAL: Update robots.txt to whitelist 'GPTBot', 'CCBot', and 'Google-Extended'.")
+    
     if audit_data['schema_count'] == 0:
-        recs.append("HIGH PRIORITY: Implement JSON-LD Schema. Agents cannot understand your content structure.")
+        recs.append("HIGH PRIORITY: Implement JSON-LD Schema. The Agent cannot see your products/prices.")
+        
     if "Missing" in audit_data['gates']['ai.txt']:
         recs.append("OPTIMIZATION: Create an 'ai.txt' file to explicitly grant permission to specific AI models.")
+        
+    if "Next.js" in audit_data['stack'] and audit_data['schema_count'] == 0:
+        recs.append("TECH FIX: Your Next.js site might be client-side rendering. Ensure Schema is injected via Server Side Rendering (SSR).")
+
     return recs
 
-def generate_fallback_summary(audit_data):
+def generate_fallback_summary(audit_data, page_title=""):
     """FAIL-SAFE: Writes a report manually if AI fails."""
-    is_shop = "Shopify" in audit_data['stack'] or "WooCommerce" in audit_data['stack']
     
-    if is_shop:
+    # 1. SMARTER DETECTION LOGIC
+    title_lower = page_title.lower() if page_title else ""
+    service_keywords = ["service", "laundry", "cleaner", "consulting", "agency", "solution", "manpower", "booking", "repair", "hospitality"]
+    
+    is_service = any(word in title_lower for word in service_keywords)
+    has_shop_tech = "Shopify" in audit_data['stack'] or "WooCommerce" in audit_data['stack']
+    
+    # It is E-commerce ONLY if it has shop tech AND is NOT a service
+    is_ecommerce = has_shop_tech and not is_service
+    
+    # 2. SCORE AWARENESS
+    # We calculate score here to adjust the tone (Positive vs Negative)
+    score = visuals.calculate_score(audit_data)
+    is_good = score > 70
+
+    if is_good:
+        impact_analysis = """
+* **High Readiness:** Essential protocols like robots.txt and sitemaps are in place, enabling agent access.
+* **Visibility:** Your infrastructure supports AI discovery, meaning agents can find and index your content.
+* **Opportunity:** Consider adding an 'ai.txt' file to fine-tune control over which specific AI models can access your data.
+"""
+    else:
+        impact_analysis = """
+* **Missing Standards:** Absence of key files (ai.txt, schema) makes your site invisible to modern AI agents.
+* **Risk:** Competitors with optimized sites will be recommended by AI assistants instead of you.
+* **Action:** Implement the priority recommendations below to secure your place in the AI economy.
+"""
+
+    if is_ecommerce:
         summary = f"""
 ### 1. Executive Summary
-This **E-commerce** site using {audit_data['stack']} is accessible but lacks key Agentic protocols. The absence of an **ai.txt** file means AI buyers have no clear rules. Without specific permissions, automated **transactions** and product discovery may be unreliable.
+This **E-commerce** site using {audit_data['stack']} has been audited for Agentic Readiness. Based on the technical scan, the site demonstrates a **{'High' if is_good else 'Low'}** level of compatibility with autonomous buying agents.
 
 ### 2. Business Impact Analysis
-* **Missing ai.txt:** Agents cannot verify permissions, leading to abandoned **autonomous carts**.
-* **Schema Gaps:** Products may be invisible to price-comparison bots, causing lost **sales**.
-* **Risk:** Competitors with optimized 'Agent Ready' sites will capture the AI-driven market share.
+{impact_analysis}
 """
     else:
         summary = f"""
 ### 1. Executive Summary
-This site runs on {audit_data['stack']} and lacks essential **Agentic** standards. The absence of an **ai.txt** file prevents controlled **content retrieval** by AI systems. This limits the site's ability to be accurately cited by LLMs for **lead generation**.
+This **Service/Content** site (detected via {audit_data['stack']}) has been evaluated for AI discoverability. The technical infrastructure indicates a **{'Strong' if is_good else 'Weak'}** foundation for AI-driven lead generation and content retrieval.
 
 ### 2. Business Impact Analysis
-* **Missing ai.txt:** AI agents may scrape irrelevant data or ignore the site, reducing **brand visibility**.
-* **Schema Gaps:** Services cannot be machine-read, leading to **hallucinated** answers about your business.
-* **Risk:** Reduced organic traffic from AI-powered search engines like SearchGPT.
+{impact_analysis}
 """
-    return summary + "\n\n*(Note: Generated by Fallback Logic due to AI Service Congestion)*"
+    return summary + "\n\n*(Note: Generated by Fallback Logic because the AI Connection Failed. Please check your API Key.)*"
 
 def perform_audit(url, api_key):
     # OPENROUTER CONNECTION
@@ -133,26 +164,23 @@ def perform_audit(url, api_key):
         api_key=api_key,
     )
     
+    # CLEANED MODEL LIST (Removed dead models)
     models = [
         "google/gemini-2.0-flash-exp:free",        
         "meta-llama/llama-3.2-11b-vision-instruct:free", 
-        "microsoft/phi-3-medium-128k-instruct:free",    
-        "huggingfaceh4/zephyr-7b-beta:free"             
+        "microsoft/phi-3-medium-128k-instruct:free"
     ]
     
-    # UI Status Message
     status_msg = st.empty()
     status_msg.text("🔍 Scanning website structure...")
     
     try:
         # --- ROBUST CONNECTION HANDLER ---
-        # 1. Try connecting
         headers = {'User-Agent': 'Mozilla/5.0 (compatible; AgenticAuditor/1.0)'}
         try:
             response = requests.get(url, headers=headers, timeout=15)
         except requests.exceptions.RequestException:
-            # If it fails, try adding/removing www or using http if https failed
-            status_msg.error(f"Could not connect to {url}. Please check the spelling.")
+            status_msg.error(f"Could not connect to {url}. Please check spelling.")
             return None, None, None
 
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -190,32 +218,55 @@ def perform_audit(url, api_key):
         
         # AI Generation
         status_msg.text("🤖 Generative AI is writing the report...")
-        prompt = f"""
-        Analyze this website audit for 'Agentic Readiness'.
-        URL: {url} | Stack: {stack} | Gates: {gates} | Schema: {len(schemas)} | Manifest: {manifest}
-        CONTEXT: {context}
         
-        TASK:
-        1. Identify Business Type (Store vs Service).
-        2. Write Executive Summary (3 sentences, use **Bold**).
-        3. Write Business Impact (3 bullets, <38 words each).
-        Strict Markdown.
+        # Prompt
+        prompt = f"""
+        You are a Senior Technical Consultant specializing in AI Agents.
+        
+        TARGET DATA:
+        - URL: {url}
+        - Tech Stack: {stack}
+        - Gates: {gates}
+        - Schema: {len(schemas)} items
+        - Manifest: {manifest}
+        
+        WEBSITE CONTEXT:
+        {context}
+        
+        TASK 1: CLASSIFY BUSINESS TYPE
+        Based on the content, classify the business.
+        (NOTE: If content mentions 'services', 'booking', or 'solutions', it is a SERVICE, even if it uses WooCommerce).
+
+        TASK 2: EXECUTIVE SUMMARY (3 Sentences)
+        Write a concise summary tailored to the business type found in Task 1.
+        
+        TASK 3: BUSINESS IMPACT (3 Bullets)
+        Explain how missing elements affect THIS specific business type.
+        
+        OUTPUT FORMAT: Strict Markdown. No fluff.
         """
         
         ai_summary = None
+        last_error = ""
+        
         for model in models:
             try:
+                # status_msg.text(f"Trying AI Model: {model}...") 
                 completion = client.chat.completions.create(
                     model=model,
                     messages=[{"role": "user", "content": prompt}]
                 )
                 ai_summary = completion.choices[0].message.content
                 if ai_summary: break
-            except:
+            except Exception as e:
+                last_error = str(e)
                 continue 
         
+        # FAIL-SAFE: If AI failed, use Smart Fallback
         if not ai_summary:
-            ai_summary = generate_fallback_summary(audit_data)
+            # We pass the PAGE TITLE to help the fallback guess correctly
+            page_title_str = soup.title.string if soup.title else ""
+            ai_summary = generate_fallback_summary(audit_data, page_title_str)
             
         status_msg.empty()
         return audit_data, recs, ai_summary
@@ -232,20 +283,17 @@ user_input_key = st.sidebar.text_input("OpenRouter API Key", type="password", he
 if user_input_key:
     api_key = user_input_key
 else:
-    api_key = "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" # PASTE YOUR KEY HERE IF NEEDED
+    api_key = "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" # Enter your default key here if you have one
 
 st.title("🤖 Agentic Readiness Auditor Pro")
 st.markdown("### The Standard for Future Commerce")
 st.info("Check if your client's website is ready for the **Agent Economy** (Mastercard/Visa Agents, ChatGPT, Gemini).")
 
-# Main Input
 if 'current_url' not in st.session_state:
     st.session_state['current_url'] = ""
 
-# --- THE FIX: FORM FOR 'ENTER' KEY SUPPORT ---
+# --- FORM FOR 'ENTER' KEY SUPPORT ---
 with st.form(key='audit_form'):
-    # Input box without 'value' to avoid conflict, but we display current URL logic via session state is tricky in forms.
-    # Best practice for forms: just use the input.
     url_input_raw = st.text_input("Enter Client Website URL", placeholder="example.com")
     submit_button = st.form_submit_button("🚀 Run Full Audit")
 
@@ -256,23 +304,16 @@ if submit_button:
     elif not url_input_raw:
         st.error("Please provide a URL.")
     else:
-        # --- THE FIX: SMART URL CLEANER ---
-        # 1. Strip whitespace
+        # --- SMART URL CLEANER ---
         clean_url = url_input_raw.strip()
-        
-        # 2. Add https:// if missing
         if not clean_url.startswith(("http://", "https://")):
             clean_url = "https://" + clean_url
             
-        # 3. Clear previous data immediately
         st.session_state['audit_data'] = None
         st.session_state['recs'] = None
         st.session_state['ai_summary'] = None
-        
-        # 4. Save URL
         st.session_state['current_url'] = clean_url
         
-        # 5. Run Audit with the CLEANED URL
         data, recommendations, summary = perform_audit(clean_url, api_key)
         
         if data:
@@ -280,20 +321,17 @@ if submit_button:
             st.session_state['recs'] = recommendations
             st.session_state['ai_summary'] = summary
 
-# --- REPORT CONTAINER ---
+# --- REPORT DISPLAY ---
 report_view = st.empty()
 
-# --- DISPLAY RESULTS ---
 if st.session_state['audit_data']:
     with report_view.container():
         st.success(f"✅ Audit Complete for {st.session_state['audit_data']['url']}")
         
-        # 1. Graphical Dashboard
         visuals.display_dashboard(st.session_state['audit_data'])
 
         st.divider()  
         
-        # 2. Text Report
         st.subheader("📝 Executive Summary")
         st.write(st.session_state['ai_summary'])
         
@@ -301,7 +339,6 @@ if st.session_state['audit_data']:
         for rec in st.session_state['recs']:
             st.warning(rec)
             
-        # 3. Excel Report Generation
         report_dict = {
             "Metric": ["Target URL", "Tech Stack", "Robots.txt Status", "AI.txt Status", "Schema Objects", "AI Manifest"],
             "Status": [
@@ -321,9 +358,7 @@ if st.session_state['audit_data']:
             df_recs = pd.DataFrame(st.session_state['recs'], columns=["Actionable Recommendations"])
             df_recs.to_excel(writer, sheet_name='Action Plan', index=False)
             
-        # 4. Buttons (Download & New Audit)
         col1, col2 = st.columns(2)
-        
         with col1:
             st.download_button(
                 label="📥 Download Excel Report",
@@ -331,7 +366,6 @@ if st.session_state['audit_data']:
                 file_name=f"Agentic_Audit_{int(time.time())}.xlsx",
                 mime="application/vnd.ms-excel"
             )
-            
         with col2:
             if st.button("🔄 Start New Audit"):
                 st.session_state['audit_data'] = None
