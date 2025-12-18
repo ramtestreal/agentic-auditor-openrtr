@@ -91,7 +91,7 @@ def display_dashboard(audit_data):
         st.info(f"{audit_data['stack']}")
         
         # Universal Messages
-      if score < 50:
+        if score < 50:
             st.error("❌ High Risk: AI Agents/LLMs will likely ignore this site.")
         elif score < 80:
             st.warning("⚠️ Partial Access: Agents might struggle to purchase.")
@@ -100,8 +100,7 @@ def display_dashboard(audit_data):
 
     st.divider()
 
-    # 3. Status Grid (The "Vertical Cards")
-    # Renamed Header to Abstract "Access Protocols"
+    # 3. Status Grid
     st.markdown("### 🛡️ AI Access Protocols")
     
     def get_status_visual(status, label):
@@ -112,35 +111,32 @@ def display_dashboard(audit_data):
         else:
             return "⚠️", "WARN", status
 
-    # Create 4 columns for metrics
     m1, m2, m3, m4 = st.columns(4)
     
-    # 1. Robots.txt -> "Crawlability Status"
+    # 1. Robots.txt
     icon, state, desc = get_status_visual(audit_data['gates']['robots.txt'], "")
     m1.metric(label="1. Crawlability Status", value=state, delta=icon)
     
-    # 2. AI Access -> "AI Model Permission"
+    # 2. AI Access
     icon, state, desc = get_status_visual(audit_data['gates']['ai_access'], "")
     m2.metric(label="2. AI Model Permission", value=state, delta=icon)
     
-    # 3. ai.txt -> "Agent Directives"
+    # 3. ai.txt
     icon, state, desc = get_status_visual(audit_data['gates']['ai.txt'], "")
     m3.metric(label="3. Agent Directives", value=state, delta=icon)
     
-    # 4. Sitemap -> "Content Discovery"
+    # 4. Sitemap
     icon, state, desc = get_status_visual(audit_data['gates']['sitemap.xml'], "")
     m4.metric(label="4. Content Discovery", value=state, delta=icon)
     
     st.divider()
     
-    # 4. Data Layer (Schema & Manifest)
+    # 4. Data Layer
     c1, c2 = st.columns(2)
     
     with c1:
-        # Renamed "Semantic Data (Schema)" to "Contextual Intelligence"
         st.markdown("#### 🧠 Contextual Intelligence")
         if audit_data['schema_count'] > 0:
-            # Renamed "Schema Objects" to "Data Layers"
             st.metric(label="Data Layers Detected", value=audit_data['schema_count'], delta="Active")
             st.progress(100, text="Content is machine-readable")
         else:
@@ -148,7 +144,6 @@ def display_dashboard(audit_data):
             st.progress(0, text="Content is unstructured/invisible")
             
     with c2:
-        # Renamed "App Identity (Manifest)" to "Commerce Identity"
         st.markdown("#### 🆔 Commerce Identity")
         if "Found" in audit_data['manifest']:
             st.metric(label="Platform Status", value="Verified", delta="Active")
