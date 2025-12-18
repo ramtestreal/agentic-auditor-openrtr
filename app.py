@@ -182,7 +182,7 @@ def perform_audit(url, api_key):
         recs = generate_recommendations(audit_data)
         
         # 5. Gemini Analysis
-        status_text.text("Generative AI is reading the content to identify business type...")
+        status.text("Generative AI is reading the content to identify business type...")
         prompt = f"""
         You are a Senior Technical Consultant. Analyze this website for 'Agentic Readiness'.
         
