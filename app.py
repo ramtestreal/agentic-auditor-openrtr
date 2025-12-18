@@ -160,16 +160,22 @@ def perform_audit(url, api_key):
         gates = check_security_gates(url)
         schemas = soup.find_all('script', type='application/ld+json')
         
-        # Manifest Check
+      # 4. Manifest / Identity Check
+        status_text.text("Verifying Identity Files...")
         domain = url.rstrip('/')
-        manifest = "Missing"
-        try:
-            if requests.get(f"{domain}/manifest.json", timeout=2).status_code == 200:
-                manifest = "Found"
-            elif soup.find("link", rel="manifest"):
-                manifest = "Found (Linked)"
-        except:
-            pass
+        
+        plugin_res = requests.get(f"{domain}/.well-known/ai-plugin.json", timeout=3)
+        web_manifest_res = requests.get(f"{domain}/manifest.json", timeout=3)
+        html_manifest = soup.find("link", rel="manifest")
+        
+        if plugin_res.status_code == 200:
+            manifest_status = "Found (AI Plugin)"
+        elif web_manifest_res.status_code == 200:
+            manifest_status = "Found (Web Manifest)"
+        elif html_manifest:
+            manifest_status = "Found (Linked in HTML)"
+        else:
+            manifest_status = "Missing"
 
         audit_data = {
             "url": url,
@@ -177,7 +183,7 @@ def perform_audit(url, api_key):
             "gates": gates,
             "schema_count": len(schemas),
             "schema_sample": "",
-            "manifest": manifest
+            "manifest": manifest_status
         }
         recs = generate_recommendations(audit_data)
         
