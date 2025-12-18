@@ -214,11 +214,7 @@ def perform_audit(url, api_key):
                 last_error = str(e)
                 continue 
         
-        # FAIL-SAFE: If AI failed, use Smart Fallback
-        if not ai_summary:
-            # We pass the PAGE TITLE to help the fallback guess correctly
-            page_title_str = soup.title.string if soup.title else ""
-            ai_summary = generate_fallback_summary(audit_data, page_title_str)
+        
             
         status_msg.empty()
         return audit_data, recs, ai_summary
