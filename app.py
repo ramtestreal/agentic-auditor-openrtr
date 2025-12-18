@@ -188,24 +188,16 @@ def perform_audit(url, api_key):
         }
         recs = generate_recommendations(audit_data)
         
-       # 5. Gemini Analysis (CONTEXT-AWARE PROMPT)
-        status_text.text("Generative AI is reading the content to identify business type...")
+        # AI Generation
+        status_msg.text("🤖 Generative AI is writing the report...")
         prompt = f"""
-        You are a Senior Technical Consultant. Analyze this website for 'Agentic Readiness'.
+        Analyze this website audit for 'Agentic Readiness'.
+        URL: {url} | Stack: {stack} | Gates: {gates} | Schema: {len(schemas)} | Manifest: {manifest}
+        CONTEXT: {context}
         
-        TARGET DATA:
-        - URL: {url}
-        - Tech Stack: {stack}
-        - Security Gates: {gates}
-        - Schema Found: {len(schemas)} items.
-        - Manifest Status: {manifest_status}
-        
-        WEBSITE CONTENT CONTEXT (Read this to identify the industry):
-        {site_context}
-        
-        YOUR TASK:
+         YOUR TASK:
         1. IDENTIFY THE BUSINESS TYPE: Use the 'WEBSITE CONTENT CONTEXT' above. 
-           - Is it B2B, SaaS, E-commerce, Training/Education, Blog, or Corporate Service? 
+           - Is it B2B, SaaS, E-commerce, Training/Education, marketplace, ai platform, Blog, or Corporate Service? 
            - NOTE: Even if it uses WooCommerce, if the content is about "Training" or "Services", treat it as Education/Service, NOT a generic store.
            
         2. WRITE EXECUTIVE SUMMARY (3 sentences): 
