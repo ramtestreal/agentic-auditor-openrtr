@@ -205,36 +205,29 @@ def perform_audit(url, api_key):
 
         Your task is to evaluate the following website for **Agentic Readiness** — the ability for AI agents (LLMs, commerce agents, discovery agents) to correctly understand, retrieve, and act on this website’s content.
 
-━━━━━━━━━━━━━━━━━━━━━━
-WEBSITE SIGNALS (FACTUAL INPUT)
-━━━━━━━━━━━━━━━━━━━━━━
-URL: {url}
-
-Detected Tech Stack:
+ TARGET DATA:
+- URL: {url}
+- Detected Tech Stack:
 {stack}
+- Access & Control Signals & Security Gates: {gates}
+- Manifest Status: {manifest}
+- Structured Data:
+ JSON-LD Objects Detected: {len(schemas)}  items.
 
-Access & Control Signals:
-Robots.txt: {gates}
-AI Manifest: {manifest}
+  WEBSITE CONTEXT:
+        {context}
 
-Structured Data:
-JSON-LD Objects Detected: {len(schemas)}
-
-Content Context (for intent detection only):
-{context}
-
-━━━━━━━━━━━━━━━━━━━━━━
 CRITICAL ANALYSIS RULES (DO NOT IGNORE)
-━━━━━━━━━━━━━━━━━━━━━━
+
 • Do NOT assume business type based only on tech stack.
 • WooCommerce / Shopify does NOT automatically mean E-commerce.
 • Classify based on **what the business sells or offers**, not how it is built.
 • Prefer content intent, wording, services, offerings, and audience signals.
 • If multiple models apply, choose the **primary revenue model**.
 
-━━━━━━━━━━━━━━━━━━━━━━
+
 TASK 1 — BUSINESS MODEL CLASSIFICATION
-━━━━━━━━━━━━━━━━━━━━━━
+
 Identify the **primary business type** from the list below (choose ONE):
 
 B2B Service  
@@ -252,9 +245,8 @@ Return ONLY:
 Business Type: <type>
 Primary Offering: <1 short phrase>
 
-━━━━━━━━━━━━━━━━━━━━━━
-TASK 2 — EXECUTIVE SUMMARY (MAX 3 SENTENCES)
-━━━━━━━━━━━━━━━━━━━━━━
+
+TASK 2 — EXECUTIVE SUMMARY (MAX 3 SENTENCES):
 Write a concise executive summary explaining this site’s **current Agentic Readiness**.
 
 Language rules:
@@ -268,9 +260,8 @@ Guidance:
 • SaaS / AI Tools → API discoverability, feature comprehension, onboarding
 • Training / Content → citation accuracy, retrieval quality, semantic clarity
 
-━━━━━━━━━━━━━━━━━━━━━━
-TASK 3 — BUSINESS-IMPACT ANALYSIS (BULLETS ONLY)
-━━━━━━━━━━━━━━━━━━━━━━
+
+TASK 3 — BUSINESS-IMPACT ANALYSIS (BULLETS ONLY):
 Explain how missing or weak elements affect **AI agent behavior**, not SEO.
 
 Focus on:
@@ -284,9 +275,8 @@ Each bullet must:
 • Start with the missing element
 • End with a **real business consequence**
 
-━━━━━━━━━━━━━━━━━━━━━━
-OUTPUT CONSTRAINTS
-━━━━━━━━━━━━━━━━━━━━━━
+
+OUTPUT CONSTRAINTS:
 • No headings outside requested sections
 • No markdown tables
 • No recommendations (handled elsewhere)
