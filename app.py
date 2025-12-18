@@ -1,11 +1,10 @@
-import streamlit as st
 import requests
 from bs4 import BeautifulSoup
-import google.generativeai as genai
+from openai import OpenAI
 import pandas as pd
 import io
 import time
-import visuals  # Ensure visuals.py exists in your repo
+import visuals
 
 # --- CONFIGURATION ---
 st.set_page_config(page_title="Agentic Readiness Auditor Pro", page_icon="🤖", layout="wide")
