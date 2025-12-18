@@ -47,9 +47,9 @@ def create_gauge_chart(score):
     fig = go.Figure(go.Indicator(
         mode = "gauge+number",
         value = score,
-        number = {'font': {'color': score_color, 'size': 40}},
+        number = {'font': {'color': score_color, 'size': 60}},
         domain = {'x': [0, 1], 'y': [0, 1]},
-        title = {'text': "Agentic Readiness Score", 'font': {'size': 24}},
+        title = {'text': "Agentic AI Readiness Score", 'font': {'size': 22}},
         gauge = {
             'axis': {'range': [None, 100], 'tickwidth': 1, 'tickcolor': "darkblue"},
             'bar': {'color': score_color, 'thickness': 0.2},
@@ -64,7 +64,7 @@ def create_gauge_chart(score):
                 {'range': [80, 100], 'color': "#008000"}
             ],
             'threshold': {
-                'line': {'color': "black", 'width': 4},
+                'line': {'color': "gray", 'width': 4},
                 'thickness': 0.75,
                 'value': score
             }
@@ -105,9 +105,9 @@ def display_dashboard(audit_data):
     
     def get_status_visual(status, label):
         if "Found" in status or "Allowed" in status:
-            return "✅", "ACTIVE", status
+            return "✅", "Pass", status
         elif "Missing" in status:
-            return "❌", "INACTIVE", "Missing"
+            return "❌", "Fail", "Missing"
         else:
             return "⚠️", "WARN", status
 
