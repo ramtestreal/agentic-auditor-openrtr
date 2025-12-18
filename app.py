@@ -191,7 +191,7 @@ def perform_audit(url, api_key):
         # AI Generation
         status_msg.text("🤖 Generative AI is writing the report...")
         prompt = f"""
-        Analyze this website audit for 'Agentic Readiness'.
+        act as a Senior Technical Consultant and Analyze this website for 'Agentic Readiness'.
         URL: {url} | Stack: {stack} | Gates: {gates} | Schema: {len(schemas)} | Manifest: {manifest}
         CONTEXT: {context}
         
