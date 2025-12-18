@@ -124,7 +124,7 @@ def generate_fallback_summary(audit_data, page_title=""):
     # 2. SCORE AWARENESS
     # We calculate score here to adjust the tone (Positive vs Negative)
     score = visuals.calculate_score(audit_data)
-    is_good = score > 70
+    is_good = score < 90
 
     if is_good:
         impact_analysis = """
