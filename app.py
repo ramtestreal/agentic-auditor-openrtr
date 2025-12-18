@@ -5,7 +5,7 @@ from openai import OpenAI
 import pandas as pd
 import io
 import time
-import visuals
+import visuals  # Ensure visuals.py exists in your repo
 
 # --- CONFIGURATION ---
 st.set_page_config(page_title="Agentic Readiness Auditor Pro", page_icon="🕵️‍♂️", layout="wide")
@@ -97,7 +97,7 @@ def generate_recommendations(audit_data):
     if audit_data['schema_count'] == 0:
         recs.append("HIGH PRIORITY: Implement JSON-LD Schema. Agents cannot understand your content structure.")
     if "Missing" in audit_data['gates']['ai.txt']:
-        recs.append("OPTIMIZATION: Create an 'ai.txt' file to explicitly grant permission to AI models.")
+        recs.append("OPTIMIZATION: Create an 'ai.txt' file to explicitly grant permission to specific AI models.")
     return recs
 
 def generate_fallback_summary(audit_data):
@@ -134,7 +134,6 @@ def perform_audit(url, api_key):
     )
     
     # THE TANK LIST (Reliable Free Models)
-    # I have updated these to the latest stable Free models on OpenRouter
     models = [
         "google/gemini-2.0-flash-exp:free",        # Primary
         "meta-llama/llama-3.2-11b-vision-instruct:free", # Robust Backup
@@ -142,8 +141,9 @@ def perform_audit(url, api_key):
         "huggingfaceh4/zephyr-7b-beta:free"             # Last Resort
     ]
     
-    status = st.empty()
-    status.text("🔍 Scanning website structure...")
+    # DEFINING STATUS HERE PREVENTS "NAME ERROR"
+    status_msg = st.empty()
+    status_msg.text("🔍 Scanning website structure...")
     
     try:
         headers = {'User-Agent': 'Mozilla/5.0 (compatible; AgenticAuditor/1.0)'}
@@ -160,22 +160,16 @@ def perform_audit(url, api_key):
         gates = check_security_gates(url)
         schemas = soup.find_all('script', type='application/ld+json')
         
-      # 4. Manifest / Identity Check
-        status_text.text("Verifying Identity Files...")
+        # Manifest Check
         domain = url.rstrip('/')
-        
-        plugin_res = requests.get(f"{domain}/.well-known/ai-plugin.json", timeout=3)
-        web_manifest_res = requests.get(f"{domain}/manifest.json", timeout=3)
-        html_manifest = soup.find("link", rel="manifest")
-        
-        if plugin_res.status_code == 200:
-            manifest_status = "Found (AI Plugin)"
-        elif web_manifest_res.status_code == 200:
-            manifest_status = "Found (Web Manifest)"
-        elif html_manifest:
-            manifest_status = "Found (Linked in HTML)"
-        else:
-            manifest_status = "Missing"
+        manifest = "Missing"
+        try:
+            if requests.get(f"{domain}/manifest.json", timeout=2).status_code == 200:
+                manifest = "Found"
+            elif soup.find("link", rel="manifest"):
+                manifest = "Found (Linked)"
+        except:
+            pass
 
         audit_data = {
             "url": url,
@@ -183,44 +177,24 @@ def perform_audit(url, api_key):
             "gates": gates,
             "schema_count": len(schemas),
             "schema_sample": "",
-            "manifest": manifest_status
+            "manifest": manifest
         }
         recs = generate_recommendations(audit_data)
         
-        # 5. Gemini Analysis
-        status.text("Generative AI is reading the content to identify business type...")
+        # AI Generation
+        status_msg.text("🤖 Generative AI is writing the report...")
         prompt = f"""
-        You are a Senior Technical Consultant. Analyze this website for 'Agentic Readiness'.
+        Analyze this website audit for 'Agentic Readiness'.
+        URL: {url} | Stack: {stack} | Gates: {gates} | Schema: {len(schemas)} | Manifest: {manifest}
+        CONTEXT: {context}
         
-        TARGET DATA:
-        - URL: {url}
-        - Tech Stack: {stack}
-        - Security Gates: {gates}
-        - Schema Found: {len(schemas)} items.
-        - Manifest Status: {manifest_status}
-        
-        WEBSITE CONTEXT:
-        {site_context}
-        
-        YOUR TASK:
-        1. Detect the Business Type (E-commerce, SaaS, B2B, Blog, etc.) based on the context.
-        
-        2. GENERATE A REPORT IN STRICT MARKDOWN FORMAT:
-        
-        ### 1. Executive Summary
-        - Write exactly 3 short, punchy sentences.
-        - Use **Bold** for key terms.
-        - Tailor the language to the business type.
-            
-        ### 2. Business Impact Analysis
-        - Provide in Bullet Points with brief of your technical observations.
-        - Each bullet must start with a **Bold Issue**.
-        - Keep each bullet upto 38 words length.
-        
-        Do NOT write paragraphs too long. Delivering messages that are easy to understand.
+        TASK:
+        1. Identify Business Type (Store vs Service).
+        2. Write Executive Summary (3 sentences, use **Bold**).
+        3. Write Business Impact (3 bullets, <38 words each).
+        Strict Markdown.
         """
         
-           
         ai_summary = None
         for model in models:
             try:
@@ -238,11 +212,13 @@ def perform_audit(url, api_key):
         if not ai_summary:
             ai_summary = generate_fallback_summary(audit_data)
             
-        status.empty()
+        status_msg.empty()
         return audit_data, recs, ai_summary
 
     except Exception as e:
-        st.error(f"Connection Error: {str(e)}")
+        # Use status_msg here safely
+        status_msg.error(f"Error during audit: {str(e)}")
+        st.error(f"Full Error Details: {str(e)}")
         return None, None, None
 
 # --- UI LAYOUT ---
@@ -251,11 +227,11 @@ st.sidebar.title("🕵️‍♂️ Audit Controls")
 # Option to enter key or use hardcoded one
 user_input_key = st.sidebar.text_input("OpenRouter API Key", type="password", help="Leave empty to use system key")
 
-# HARDCODED KEY LOGIC (If you want to hardcode it, paste it below)
+# HARDCODED KEY LOGIC
 if user_input_key:
     api_key = user_input_key
 else:
-    api_key = "" # PASTE YOUR OPENROUTER KEY HERE IF YOU WANT
+    api_key = "" # PASTE YOUR KEY HERE IF NEEDED
 
 st.title("🤖 Agentic Readiness Auditor Pro")
 st.markdown("### The Standard for Future Commerce")
