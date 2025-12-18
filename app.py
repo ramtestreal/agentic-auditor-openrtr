@@ -214,7 +214,7 @@ def perform_audit(url, api_key):
                 last_error = str(e)
                 continue 
         
-        
+        ai_summary = model.generate_content(prompt).text
             
         status_msg.empty()
         return audit_data, recs, ai_summary
