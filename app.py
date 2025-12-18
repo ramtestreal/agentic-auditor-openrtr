@@ -327,7 +327,7 @@ user_input_key = st.sidebar.text_input("OpenRouter API Key", type="password", he
 if user_input_key:
     api_key = user_input_key
 else:
-    api_key = "" # PASTE YOUR KEY HERE IF NEEDED
+    api_key = "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" # PASTE YOUR KEY HERE IF NEEDED
 
 st.title("🤖 Agentic Readiness Auditor Pro")
 st.markdown("### The Standard for Future Commerce")
