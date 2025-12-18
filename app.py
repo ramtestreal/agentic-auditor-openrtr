@@ -181,20 +181,40 @@ def perform_audit(url, api_key):
         }
         recs = generate_recommendations(audit_data)
         
-        # AI Generation
-        status.text("🤖 Generative AI is writing the report...")
+        # 5. Gemini Analysis
+        status_text.text("Generative AI is reading the content to identify business type...")
         prompt = f"""
-        Analyze this website audit for 'Agentic Readiness'.
-        URL: {url} | Stack: {stack} | Gates: {gates} | Schema: {len(schemas)} | Manifest: {manifest}
-        CONTEXT: {context}
+        You are a Senior Technical Consultant. Analyze this website for 'Agentic Readiness'.
         
-        TASK:
-        1. Identify Business Type (Store vs Service).
-        2. Write Executive Summary (3 sentences, use **Bold**).
-        3. Write Business Impact (3 bullets, <38 words each).
-        Strict Markdown.
+        TARGET DATA:
+        - URL: {url}
+        - Tech Stack: {stack}
+        - Security Gates: {gates}
+        - Schema Found: {len(schemas)} items.
+        - Manifest Status: {manifest_status}
+        
+        WEBSITE CONTEXT:
+        {site_context}
+        
+        YOUR TASK:
+        1. Detect the Business Type (E-commerce, SaaS, B2B, Blog, etc.) based on the context.
+        
+        2. GENERATE A REPORT IN STRICT MARKDOWN FORMAT:
+        
+        ### 1. Executive Summary
+        - Write exactly 3 short, punchy sentences.
+        - Use **Bold** for key terms.
+        - Tailor the language to the business type.
+            
+        ### 2. Business Impact Analysis
+        - Provide in Bullet Points with brief of your technical observations.
+        - Each bullet must start with a **Bold Issue**.
+        - Keep each bullet upto 38 words length.
+        
+        Do NOT write paragraphs too long. Delivering messages that are easy to understand.
         """
         
+           
         ai_summary = None
         for model in models:
             try:
