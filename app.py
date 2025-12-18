@@ -198,23 +198,8 @@ def perform_audit(url, api_key):
         OUTPUT FORMAT: Strict Markdown. No fluff.
         """
         
-        ai_summary = None
-        last_error = ""
+       ai_summary = model.generate_content(prompt).text      
         
-        for model in models:
-            try:
-                # status_msg.text(f"Trying AI Model: {model}...") 
-                completion = client.chat.completions.create(
-                    model=model,
-                    messages=[{"role": "user", "content": prompt}]
-                )
-                ai_summary = completion.choices[0].message.content
-                if ai_summary: break
-            except Exception as e:
-                last_error = str(e)
-                continue 
-        
-        ai_summary = model.generate_content(prompt).text
             
         status_msg.empty()
         return audit_data, recs, ai_summary
