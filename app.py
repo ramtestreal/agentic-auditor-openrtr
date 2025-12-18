@@ -115,7 +115,10 @@ def generate_fallback_summary(audit_data, page_title=""):
     
     # It is E-commerce ONLY if it has shop tech AND is NOT a service
     is_ecommerce = has_shop_tech and not is_service
-    
+       
+    status_text = st.empty()
+    status_text.text("Connecting to website...")
+
     if is_ecommerce:
         summary = f"""
 ### 1. Executive Summary
@@ -199,7 +202,7 @@ def perform_audit(url, api_key):
         recs = generate_recommendations(audit_data)
         
         # AI Generation
-        status.text("Generative AI is reading the content to identify business type...")
+        status_text.text("Generative AI is reading the content to identify business type...")
         prompt = f"""
            You are a Senior Technical Consultant specializing in AI Agents, Autonomous Transactions, and Machine-Readable Web Infrastructure.
 
