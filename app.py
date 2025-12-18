@@ -104,7 +104,6 @@ def generate_fallback_summary(audit_data, page_title=""):
     """FAIL-SAFE: Writes a report manually if AI fails."""
     
     # 1. SMARTER DETECTION LOGIC
-    # Convert title to lowercase for checking
     title_lower = page_title.lower() if page_title else ""
     
     # Keywords that suggest a SERVICE even if they use WooCommerce
@@ -115,9 +114,7 @@ def generate_fallback_summary(audit_data, page_title=""):
     
     # It is E-commerce ONLY if it has shop tech AND is NOT a service
     is_ecommerce = has_shop_tech and not is_service
-       
- 
-
+    
     if is_ecommerce:
         summary = f"""
 ### 1. Executive Summary
@@ -148,6 +145,7 @@ def perform_audit(url, api_key):
         api_key=api_key,
     )
     
+    # UPDATED MODEL LIST (More Reliable Options)
     models = [
         "google/gemini-2.0-flash-exp:free",        
         "meta-llama/llama-3.2-11b-vision-instruct:free", 
@@ -201,90 +199,38 @@ def perform_audit(url, api_key):
         recs = generate_recommendations(audit_data)
         
         # AI Generation
-        status_msg.text("Generative AI is reading the content to identify business type...")
+        status_msg.text("🤖 Generative AI is reading the content to identify business type...")
+        
+        # CLEANED PROMPT (Removed Indentation Errors)
         prompt = f"""
-           You are a Senior Technical Consultant specializing in AI Agents, Autonomous Transactions, and Machine-Readable Web Infrastructure.
-
-        Your task is to evaluate the following website for **Agentic Readiness** — the ability for AI agents (LLMs, commerce agents, discovery agents) to correctly understand, retrieve, and act on this website’s content.
-
- TARGET DATA:
-- URL: {url}
-- Detected Tech Stack:
-{stack}
-- Access & Control Signals & Security Gates: {gates}
-- Manifest Status: {manifest}
-- Structured Data:
- JSON-LD Objects Detected: {len(schemas)}  items.
-
-  WEBSITE CONTEXT:
+        You are a Senior Technical Consultant specializing in AI Agents.
+        
+        TARGET DATA:
+        - URL: {url}
+        - Tech Stack: {stack}
+        - Gates: {gates}
+        - Schema: {len(schemas)} items
+        - Manifest: {manifest}
+        
+        WEBSITE CONTEXT:
         {context}
+        
+        TASK 1: CLASSIFY BUSINESS TYPE
+        Based on the content, is this B2B, Service, E-commerce, or SaaS? 
+        (Note: Service businesses often use WooCommerce/Shopify. If content is about services, classify as Service).
 
-CRITICAL ANALYSIS RULES (DO NOT IGNORE)
-
-• Do NOT assume business type based only on tech stack.
-• WooCommerce / Shopify does NOT automatically mean E-commerce.
-• Classify based on **what the business sells or offers**, not how it is built.
-• Prefer content intent, wording, services, offerings, and audience signals.
-• If multiple models apply, choose the **primary revenue model**.
-
-
-TASK 1 — BUSINESS MODEL CLASSIFICATION
-
-Identify the **primary business type** from the list below (choose ONE):
-
-B2B Service  
-B2C Service  
-SaaS / Software Platform  
-E-commerce / DTC  
-Marketplace / Aggregator  
-Training / Education  
-AI Platform / AI Tool  
-Content Publisher / Blog / Media  
-Corporate / Enterprise Website  
-Hybrid (specify dominant model)
-
-Return ONLY:
-Business Type: <type>
-Primary Offering: <1 short phrase>
-
-
-TASK 2 — EXECUTIVE SUMMARY (MAX 3 SENTENCES):
-Write a concise executive summary explaining this site’s **current Agentic Readiness**.
-
-Language rules:
-• Match vocabulary to the business type
-• Be factual, not promotional
-• No buzzwords unless technically relevant
-
-Guidance:
-• E-commerce → autonomous buying, product discovery, transactions
-• B2B / Services → service discovery, lead qualification, trust signals
-• SaaS / AI Tools → API discoverability, feature comprehension, onboarding
-• Training / Content → citation accuracy, retrieval quality, semantic clarity
-
-
-TASK 3 — BUSINESS-IMPACT ANALYSIS (BULLETS ONLY):
-Explain how missing or weak elements affect **AI agent behavior**, not SEO.
-
-Focus on:
-• ai.txt absence → permission ambiguity / agent avoidance
-• Schema gaps → misunderstanding, hallucination, invisibility
-• Access controls → blocked agents, partial retrieval
-• Manifest gaps → poor agent execution or task continuity
-
-Write 3–5 bullets.
-Each bullet must:
-• Start with the missing element
-• End with a **real business consequence**
-
-
-OUTPUT CONSTRAINTS:
-• No headings outside requested sections
-• No markdown tables
-• No recommendations (handled elsewhere)
-• No future speculation beyond current signals
-• Be deterministic and precise
-"""
+        TASK 2: EXECUTIVE SUMMARY (3 Sentences)
+        Write a concise summary tailored to the business type found in Task 1.
+        - If E-commerce: Mention "autonomous buying" and "transactions".
+        - If Service/B2B: Mention "service discovery" and "lead qualification".
+        
+        TASK 3: BUSINESS IMPACT (3 Bullets)
+        Explain how missing elements affect THIS specific business type.
+        - Start bullets with Bold Issue (e.g., **Missing ai.txt**).
+        - Keep strictly brief.
+        
+        OUTPUT FORMAT: Strict Markdown. No fluff.
+        """
         
         ai_summary = None
         for model in models:
@@ -298,9 +244,8 @@ OUTPUT CONSTRAINTS:
             except:
                 continue 
         
-        # FAIL-SAFE: If AI failed, use Smart Fallback
+        # FAIL-SAFE: Only runs if AI failed
         if not ai_summary:
-            # We pass the PAGE TITLE to help the fallback guess correctly
             page_title_str = soup.title.string if soup.title else ""
             ai_summary = generate_fallback_summary(audit_data, page_title_str)
             
@@ -319,7 +264,7 @@ user_input_key = st.sidebar.text_input("OpenRouter API Key", type="password", he
 if user_input_key:
     api_key = user_input_key
 else:
-    api_key = "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" # PASTE YOUR KEY HERE IF NEEDED
+    api_key = "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" 
 
 st.title("🤖 Agentic Readiness Auditor Pro")
 st.markdown("### The Standard for Future Commerce")
