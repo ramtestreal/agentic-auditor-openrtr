@@ -199,7 +199,7 @@ def perform_audit(url, api_key):
         recs = generate_recommendations(audit_data)
         
         # AI Generation
-        status_msg.text("🤖 Generative AI is writing the report...")
+        status_text.text("Generative AI is reading the content to identify business type...")
         prompt = f"""
            You are a Senior Technical Consultant specializing in AI Agents, Autonomous Transactions, and Machine-Readable Web Infrastructure.
 
