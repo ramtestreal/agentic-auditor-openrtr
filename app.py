@@ -188,29 +188,34 @@ def perform_audit(url, api_key):
         }
         recs = generate_recommendations(audit_data)
         
-        # AI Generation
-        status_msg.text("🤖 Generative AI is writing the report...")
+       # 5. Gemini Analysis (CONTEXT-AWARE PROMPT)
+        status_text.text("Generative AI is reading the content to identify business type...")
         prompt = f"""
-        Analyze this website audit for 'Agentic Readiness'.
-        URL: {url} | Stack: {stack} | Gates: {gates} | Schema: {len(schemas)} | Manifest: {manifest}
-        CONTEXT: {context}
+        You are a Senior Technical Consultant. Analyze this website for 'Agentic Readiness'.
+        
+        TARGET DATA:
+        - URL: {url}
+        - Tech Stack: {stack}
+        - Security Gates: {gates}
+        - Schema Found: {len(schemas)} items.
+        - Manifest Status: {manifest_status}
+        
+        WEBSITE CONTENT CONTEXT (Read this to identify the industry):
+        {site_context}
         
         YOUR TASK:
-        1. Detect the Business Type (E-commerce, SaaS, B2B, Blog, etc.) based on the context.
-        
-        2. GENERATE A REPORT IN STRICT MARKDOWN FORMAT:
-        
-        ### 1. Executive Summary
-        - Write exactly 3 short, punchy sentences.
-        - Use **Bold** for key terms.
-        - Tailor the language to the business type.
-            
-        ### 2. Business Impact Analysis
-        - Provide in Bullet Points with brief of your technical observations.
-        - Each bullet must start with a **Bold Issue**.
-        - Keep each bullet upto 38 words length.
-        
-        Do NOT write paragraphs too long. Delivering messages that are easy to understand.
+        1. IDENTIFY THE BUSINESS TYPE: Use the 'WEBSITE CONTENT CONTEXT' above. 
+           - Is it B2B, SaaS, E-commerce, Training/Education, Blog, or Corporate Service? 
+           - NOTE: Even if it uses WooCommerce, if the content is about "Training" or "Services", treat it as Education/Service, NOT a generic store.
+           
+        2. WRITE EXECUTIVE SUMMARY (3 sentences): 
+           - Tailor the language to the business type identified.
+           - For E-commerce: Use terms like "autonomous buying" and "transactions".
+           - For B2B/Services: Use terms like "service discovery", "lead qualification", and "content retrieval".
+           - For SaaS/Training: Use terms like "user onboarding" or "knowledge access".
+           
+        3. EXPLAIN BUSINESS IMPACT:
+           - Explain why missing elements (like ai.txt or schema) hurt *this specific* business type.
         """
         
         ai_summary = None
