@@ -201,22 +201,98 @@ def perform_audit(url, api_key):
         # AI Generation
         status_msg.text("🤖 Generative AI is writing the report...")
         prompt = f"""
-        act as a Senior Technical Consultant and Analyze this website for 'Agentic Readiness'.
-        URL: {url} | Stack: {stack} | Gates: {gates} | Schema: {len(schemas)} | Manifest: {manifest}
-        CONTEXT: {context}
-        
-        TASK:
-        1. IDENTIFY THE BUSINESS TYPE: Use the 'WEBSITE CONTENT CONTEXT' above.
-           - Is it B2B, SaaS, E-commerce, Training/Education, marketplace, ai platform, Blog, or Corporate Service?
-           - NOTE: Even if it uses WooCommerce, if the content is about "Training" or "Services", treat it as Education/Service, NOT a generic store.
-           
-        2. Business Impact Analysis
-        - Provide exactly 3 Bullet Points.
-        - Each bullet must start with a **Bold Issue** (e.g., **Missing ai.txt:**).
-        - Keep each bullet under 25 words. Focus on the money/risk.
-        
-        Do NOT write paragraphs too long. Delivering messages that are easy to understand.
-        """
+           You are a Senior Technical Consultant specializing in AI Agents, Autonomous Transactions, and Machine-Readable Web Infrastructure.
+
+        Your task is to evaluate the following website for **Agentic Readiness** — the ability for AI agents (LLMs, commerce agents, discovery agents) to correctly understand, retrieve, and act on this website’s content.
+
+━━━━━━━━━━━━━━━━━━━━━━
+WEBSITE SIGNALS (FACTUAL INPUT)
+━━━━━━━━━━━━━━━━━━━━━━
+URL: {url}
+
+Detected Tech Stack:
+{stack}
+
+Access & Control Signals:
+Robots.txt: {gates}
+AI Manifest: {manifest}
+
+Structured Data:
+JSON-LD Objects Detected: {len(schemas)}
+
+Content Context (for intent detection only):
+{context}
+
+━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL ANALYSIS RULES (DO NOT IGNORE)
+━━━━━━━━━━━━━━━━━━━━━━
+• Do NOT assume business type based only on tech stack.
+• WooCommerce / Shopify does NOT automatically mean E-commerce.
+• Classify based on **what the business sells or offers**, not how it is built.
+• Prefer content intent, wording, services, offerings, and audience signals.
+• If multiple models apply, choose the **primary revenue model**.
+
+━━━━━━━━━━━━━━━━━━━━━━
+TASK 1 — BUSINESS MODEL CLASSIFICATION
+━━━━━━━━━━━━━━━━━━━━━━
+Identify the **primary business type** from the list below (choose ONE):
+
+B2B Service  
+B2C Service  
+SaaS / Software Platform  
+E-commerce / DTC  
+Marketplace / Aggregator  
+Training / Education  
+AI Platform / AI Tool  
+Content Publisher / Blog / Media  
+Corporate / Enterprise Website  
+Hybrid (specify dominant model)
+
+Return ONLY:
+Business Type: <type>
+Primary Offering: <1 short phrase>
+
+━━━━━━━━━━━━━━━━━━━━━━
+TASK 2 — EXECUTIVE SUMMARY (MAX 3 SENTENCES)
+━━━━━━━━━━━━━━━━━━━━━━
+Write a concise executive summary explaining this site’s **current Agentic Readiness**.
+
+Language rules:
+• Match vocabulary to the business type
+• Be factual, not promotional
+• No buzzwords unless technically relevant
+
+Guidance:
+• E-commerce → autonomous buying, product discovery, transactions
+• B2B / Services → service discovery, lead qualification, trust signals
+• SaaS / AI Tools → API discoverability, feature comprehension, onboarding
+• Training / Content → citation accuracy, retrieval quality, semantic clarity
+
+━━━━━━━━━━━━━━━━━━━━━━
+TASK 3 — BUSINESS-IMPACT ANALYSIS (BULLETS ONLY)
+━━━━━━━━━━━━━━━━━━━━━━
+Explain how missing or weak elements affect **AI agent behavior**, not SEO.
+
+Focus on:
+• ai.txt absence → permission ambiguity / agent avoidance
+• Schema gaps → misunderstanding, hallucination, invisibility
+• Access controls → blocked agents, partial retrieval
+• Manifest gaps → poor agent execution or task continuity
+
+Write 3–5 bullets.
+Each bullet must:
+• Start with the missing element
+• End with a **real business consequence**
+
+━━━━━━━━━━━━━━━━━━━━━━
+OUTPUT CONSTRAINTS
+━━━━━━━━━━━━━━━━━━━━━━
+• No headings outside requested sections
+• No markdown tables
+• No recommendations (handled elsewhere)
+• No future speculation beyond current signals
+• Be deterministic and precise
+"""
         
         ai_summary = None
         for model in models:
